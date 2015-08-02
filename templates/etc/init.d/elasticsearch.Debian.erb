@@ -164,6 +164,15 @@ case "$1" in
 	# Start Daemon
 	start-stop-daemon --start -b --user "$ES_USER" -c "$ES_USER" --pidfile "$PID_FILE" --exec $DAEMON -- $DAEMON_OPTS
 	log_end_msg $?
+
+        # Wait to listen on port
+        slp=1
+        IS_RUNNING=$(sudo lsof -i tcp:9200 |  awk 'NR!=1 {print $2}')
+        while [ -z ${IS_RUNNING} ] && [ ${slp} -lt 15 ]
+        do
+          sleep 1
+          ((slp++))
+        done
 	;;
   stop)
 	log_daemon_msg "Stopping $DESC"
