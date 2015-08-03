@@ -167,12 +167,18 @@ case "$1" in
 
         # Wait to listen on port
         slp=1
-        IS_RUNNING=$(sudo lsof -i tcp:9200 |  awk 'NR!=1 {print $2}')
-        while [ -z ${IS_RUNNING} ] && [ ${slp} -lt 15 ]
-        do
+        echo " * waiting for port 9200"
+        while ! fuser 9200/tcp -s; do
           sleep 1
           ((slp++))
+          echo -n "."
+          if [ ${slp} -gt 20 ]; then
+                echo
+                echo " * timed out waiting for port 9200"
+                exit 1
+          fi
         done
+        echo
 	;;
   stop)
 	log_daemon_msg "Stopping $DESC"
